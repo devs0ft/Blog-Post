@@ -1,32 +1,18 @@
-import React from "react";
+import dbConnect from "../../../libs/dbConnect";
+import Post from "../../../models/post.models";
 
-const posts = ({ posts }) => {
-  return (
-    <div>
-      <h1>List of posts</h1>
-      {posts.map((post) => (
-        <div className="border border-gray-300 shadow-md p-5">
-          <h1>{post.title}</h1>
-          <h3>
-            {post.author} - <small>{post.publishedDate}</small>
-          </h3>
-          <p>{post.content}</p>
-        </div>
-      ))}
-    </div>
-  );
-};
+export default async function handler(req, res) {
+    await dbConnect();
 
-export default posts;
-
-export async function getServerSideProps() {
-  // fetching takes place
-  const res = await fetch("http://localhost:4000/posts");
-  const posts = await res.json();
-
-  return {
-    props: {
-      posts,
-    },
-  };
+    if (req.method === "GET") {
+        const posts = await Post.find();
+        res.status(200).json({ posts });
+    } else if (req.method === "POST") {
+        const post = await Post.create(req.body);
+        res.status(201).json({ status: "Post Created Successfully", post });
+    } else {
+        res
+           .status(405)
+           .json({ error: "Method not allowed. Only GET and POST is allowed" });
+    }
 }
